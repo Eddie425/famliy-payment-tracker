@@ -1,0 +1,25 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: family-payment-postgres
+    environment:
+      POSTGRES_DB: family_payment
+      POSTGRES_USER: fpt
+      POSTGRES_PASSWORD: fpt
+    ports:
+      - "5432:5432"
+    volumes:
+      - family_payment_pgdata:/var/lib/postgresql/data
+
+volumes:
+  family_payment_pgdata:
+
+
+
+
+
+
+
+
+
+
