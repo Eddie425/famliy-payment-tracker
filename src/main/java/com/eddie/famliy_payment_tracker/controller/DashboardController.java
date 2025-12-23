@@ -129,11 +129,16 @@ public class DashboardController {
     private List<DashboardSummaryDTO.MonthlyBreakdownDTO> createSampleMonthlyBreakdowns() {
         List<DashboardSummaryDTO.MonthlyBreakdownDTO> monthly = new ArrayList<>();
         
-        // January 2024 - Complete
-        monthly.add(createSampleMonthlyBreakdown(2024, 1));
+        LocalDate now = LocalDate.now();
+        int currentYear = now.getYear();
+        int currentMonth = now.getMonthValue();
         
-        // February 2024 - Partial
-        monthly.add(createSampleMonthlyBreakdown(2024, 2));
+        // Current month - Partial
+        monthly.add(createSampleMonthlyBreakdown(currentYear, currentMonth));
+        
+        // Next month - Upcoming
+        LocalDate nextMonth = now.plusMonths(1);
+        monthly.add(createSampleMonthlyBreakdown(nextMonth.getYear(), nextMonth.getMonthValue()));
         
         return monthly;
     }
@@ -143,8 +148,12 @@ public class DashboardController {
         String monthStr = String.format("%04d-%02d", year, month);
         String monthLabel = date.format(DateTimeFormatter.ofPattern("MMMM yyyy"));
         
-        if (month == 1) {
-            // January - fully paid
+        LocalDate now = LocalDate.now();
+        boolean isCurrentMonth = (year == now.getYear() && month == now.getMonthValue());
+        boolean isPastMonth = date.isBefore(now.withDayOfMonth(1));
+        
+        if (isPastMonth) {
+            // Past month - fully paid
             return DashboardSummaryDTO.MonthlyBreakdownDTO.builder()
                     .month(monthStr)
                     .monthLabel(monthLabel)
@@ -152,10 +161,10 @@ public class DashboardController {
                     .totalPaid(50000L)
                     .remaining(0L)
                     .isComplete(true)
-                    .installments(createSampleInstallments(true))
+                    .installments(createSampleInstallments(year, month, true))
                     .build();
-        } else {
-            // February - partially paid
+        } else if (isCurrentMonth) {
+            // Current month - partially paid
             return DashboardSummaryDTO.MonthlyBreakdownDTO.builder()
                     .month(monthStr)
                     .monthLabel(monthLabel)
@@ -163,32 +172,47 @@ public class DashboardController {
                     .totalPaid(30000L)
                     .remaining(20000L)
                     .isComplete(false)
-                    .installments(createSampleInstallments(false))
+                    .installments(createSampleInstallments(year, month, false))
+                    .build();
+        } else {
+            // Future month - not paid yet
+            return DashboardSummaryDTO.MonthlyBreakdownDTO.builder()
+                    .month(monthStr)
+                    .monthLabel(monthLabel)
+                    .totalDue(50000L)
+                    .totalPaid(0L)
+                    .remaining(50000L)
+                    .isComplete(false)
+                    .installments(createSampleInstallments(year, month, false))
                     .build();
         }
     }
     
-    private List<DashboardSummaryDTO.InstallmentDetailDTO> createSampleInstallments(boolean allPaid) {
+    private List<DashboardSummaryDTO.InstallmentDetailDTO> createSampleInstallments(int year, int month, boolean allPaid) {
         List<DashboardSummaryDTO.InstallmentDetailDTO> installments = new ArrayList<>();
+        LocalDate now = LocalDate.now();
+        LocalDate monthStart = LocalDate.of(year, month, 1);
+        LocalDate dueDate1 = monthStart.withDayOfMonth(15);
+        LocalDate dueDate2 = monthStart.withDayOfMonth(20);
         
         installments.add(DashboardSummaryDTO.InstallmentDetailDTO.builder()
                 .installmentId(1L)
                 .debtTitle("Car Loan")
                 .amount(30000L)
-                .dueDate("2024-01-15")
-                .paid(true)
-                .paidAt("2024-01-10")
-                .isOverdue(false)
+                .dueDate(dueDate1.toString())
+                .paid(allPaid || dueDate1.isBefore(now))
+                .paidAt((allPaid || dueDate1.isBefore(now)) ? dueDate1.minusDays(5).toString() : null)
+                .isOverdue(!allPaid && dueDate1.isBefore(now) && !dueDate1.minusDays(5).isBefore(now))
                 .build());
         
         installments.add(DashboardSummaryDTO.InstallmentDetailDTO.builder()
                 .installmentId(2L)
                 .debtTitle("Credit Card")
                 .amount(20000L)
-                .dueDate("2024-01-20")
+                .dueDate(dueDate2.toString())
                 .paid(allPaid)
-                .paidAt(allPaid ? "2024-01-18" : null)
-                .isOverdue(!allPaid && LocalDate.parse("2024-01-20").isBefore(LocalDate.now()))
+                .paidAt(allPaid ? dueDate2.minusDays(2).toString() : null)
+                .isOverdue(!allPaid && dueDate2.isBefore(now))
                 .build());
         
         return installments;

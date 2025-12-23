@@ -142,7 +142,10 @@ public class AdminController {
         // TODO: Replace with actual service call
         // InstallmentService.getInstallmentsByDebtId(id)
         
-        List<InstallmentResponseDTO> installments = createSampleInstallments(id);
+        // Use current date for more realistic sample data
+        LocalDate now = LocalDate.now();
+        LocalDate startDate = now.minusMonths(3).withDayOfMonth(1);
+        List<InstallmentResponseDTO> installments = createSampleInstallments(id, startDate);
         return ResponseEntity.ok(installments);
     }
 
@@ -291,12 +294,16 @@ public class AdminController {
     private List<DebtResponseDTO> createSampleDebtsList(boolean includeInstallments) {
         List<DebtResponseDTO> debts = new ArrayList<>();
         
+        // Use current date for more realistic sample data
+        LocalDate now = LocalDate.now();
+        LocalDate startDate = now.minusMonths(3).withDayOfMonth(1);
+        
         DebtResponseDTO debt1 = DebtResponseDTO.builder()
                 .id(1L)
                 .title("Car Loan")
                 .totalAmount(300000L)
                 .installmentCount(12)
-                .startDate(LocalDate.of(2024, 1, 1))
+                .startDate(startDate)
                 .status("ACTIVE")
                 .summary(DebtResponseDTO.DebtSummaryDTO.builder()
                         .paidAmount(90000L)
@@ -307,7 +314,7 @@ public class AdminController {
                 .build();
         
         if (includeInstallments) {
-            debt1.setInstallments(createSampleInstallments(1L));
+            debt1.setInstallments(createSampleInstallments(1L, startDate));
         }
         
         debts.add(debt1);
@@ -315,12 +322,16 @@ public class AdminController {
     }
     
     private DebtResponseDTO createSampleDebtResponse(Long id, boolean includeInstallments) {
+        // Use current date for more realistic sample data
+        LocalDate now = LocalDate.now();
+        LocalDate startDate = now.minusMonths(3).withDayOfMonth(1);
+        
         DebtResponseDTO debt = DebtResponseDTO.builder()
                 .id(id)
                 .title("Car Loan")
                 .totalAmount(300000L)
                 .installmentCount(12)
-                .startDate(LocalDate.of(2024, 1, 1))
+                .startDate(startDate)
                 .status("ACTIVE")
                 .summary(DebtResponseDTO.DebtSummaryDTO.builder()
                         .paidAmount(90000L)
@@ -331,19 +342,20 @@ public class AdminController {
                 .build();
         
         if (includeInstallments) {
-            debt.setInstallments(createSampleInstallments(id));
+            debt.setInstallments(createSampleInstallments(id, startDate));
         }
         
         return debt;
     }
     
-    private List<InstallmentResponseDTO> createSampleInstallments(Long debtId) {
+    private List<InstallmentResponseDTO> createSampleInstallments(Long debtId, LocalDate startDate) {
         List<InstallmentResponseDTO> installments = new ArrayList<>();
-        LocalDate startDate = LocalDate.of(2024, 1, 15);
+        LocalDate now = LocalDate.now();
+        LocalDate firstDueDate = startDate.withDayOfMonth(15);
         
         for (int i = 1; i <= 12; i++) {
-            LocalDate dueDate = startDate.plusMonths(i - 1);
-            boolean isPaid = i <= 3;
+            LocalDate dueDate = firstDueDate.plusMonths(i - 1);
+            boolean isPaid = dueDate.isBefore(now) || (dueDate.equals(now) && i <= 3);
             
             installments.add(InstallmentResponseDTO.builder()
                     .id((long) i)
@@ -354,7 +366,7 @@ public class AdminController {
                     .dueDate(dueDate)
                     .paid(isPaid)
                     .paidAt(isPaid ? dueDate.minusDays(5) : null)
-                    .isOverdue(!isPaid && dueDate.isBefore(LocalDate.now()))
+                    .isOverdue(!isPaid && dueDate.isBefore(now))
                     .build());
         }
         
