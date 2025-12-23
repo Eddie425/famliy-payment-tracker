@@ -260,7 +260,7 @@ curl http://localhost:8080/api/dashboard/summary | jq
 - The current `DashboardController` has sample data to show the structure
 - Replace sample methods with actual service calls once entities are created
 - The DTO structure is designed to be frontend-friendly
-- All amounts are in the smallest currency unit (e.g., cents for USD)
+- All amounts are in the smallest currency unit (e.g., cents for TWD)
 
 
 

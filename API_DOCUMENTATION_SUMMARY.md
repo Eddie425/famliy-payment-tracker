@@ -274,7 +274,7 @@ curl http://localhost:8080/api/dashboard/summary
 
 ## Notes
 
-- All amounts are in the smallest currency unit (e.g., cents for USD)
+- All amounts are in the smallest currency unit (e.g., cents for TWD)
 - Dates are in ISO format: `YYYY-MM-DD`
 - The Swagger UI provides interactive testing of all endpoints
 - All endpoints are currently accessible without authentication (future versions will add RBAC)
