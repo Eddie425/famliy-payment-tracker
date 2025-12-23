@@ -5,13 +5,25 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
  * CORS configuration to allow frontend requests from localhost:3000
  * This enables the React frontend to communicate with the Spring Boot backend
  */
 @Configuration
-public class CorsConfig {
+public class CorsConfig implements WebMvcConfigurer {
+
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+        registry.addMapping("/**")
+                .allowedOriginPatterns("http://localhost:*", "http://127.0.0.1:*")
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
+                .allowedHeaders("*")
+                .allowCredentials(true)
+                .maxAge(3600);
+    }
 
     @Bean
     public CorsFilter corsFilter() {
@@ -21,9 +33,10 @@ public class CorsConfig {
         // Allow credentials (cookies, authorization headers)
         config.setAllowCredentials(true);
         
-        // Allow requests from the React frontend
-        config.addAllowedOrigin("http://localhost:3000");
-        config.addAllowedOrigin("http://127.0.0.1:3000");
+        // In Spring Boot 3.x, when using setAllowCredentials(true), 
+        // we must use addAllowedOriginPattern() instead of addAllowedOrigin()
+        config.addAllowedOriginPattern("http://localhost:*");
+        config.addAllowedOriginPattern("http://127.0.0.1:*");
         
         // Allow all headers
         config.addAllowedHeader("*");
