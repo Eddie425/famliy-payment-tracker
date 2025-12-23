@@ -45,12 +45,19 @@ public class AdminController {
     })
     @PostMapping("/debts")
     public ResponseEntity<DebtResponseDTO> createDebt(
-            @Parameter(description = "Debt creation request with title, total amount, installment count, and start date")
+            @Parameter(description = "Debt creation request with title, total amount (or monthly payment amount), installment count, and start date")
             @Valid @RequestBody CreateDebtRequest request) {
         // TODO: Replace with actual service call
         // DebtService.createDebt(request) -> returns DebtResponseDTO
         
-        DebtResponseDTO response = createSampleDebtResponse(request);
+        // Calculate totalAmount from monthlyPaymentAmount if provided
+        Long calculatedTotalAmount = request.getTotalAmount();
+        Long monthlyAmount = request.getMonthlyPaymentAmount();
+        if (calculatedTotalAmount == null && monthlyAmount != null) {
+            calculatedTotalAmount = monthlyAmount * request.getInstallmentCount();
+        }
+        
+        DebtResponseDTO response = createSampleDebtResponse(request, calculatedTotalAmount, monthlyAmount);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -242,11 +249,16 @@ public class AdminController {
 
     // ========== Sample Data Methods (to be replaced with actual service calls) ==========
     
-    private DebtResponseDTO createSampleDebtResponse(CreateDebtRequest request) {
-        return DebtResponseDTO.builder()
+    private DebtResponseDTO createSampleDebtResponse(CreateDebtRequest request, Long calculatedTotalAmount, Long monthlyAmount) {
+        // Use monthlyAmount for installments if provided, otherwise calculate from totalAmount
+        Long installmentAmount = monthlyAmount != null 
+            ? monthlyAmount 
+            : (request.getTotalAmount() != null ? request.getTotalAmount() / request.getInstallmentCount() : 25000L);
+        
+        DebtResponseDTO response = DebtResponseDTO.builder()
                 .id(1L)
                 .title(request.getTitle())
-                .totalAmount(request.getTotalAmount())
+                .totalAmount(calculatedTotalAmount)
                 .installmentCount(request.getInstallmentCount())
                 .startDate(request.getStartDate())
                 .interestRate(request.getInterestRate())
@@ -254,6 +266,26 @@ public class AdminController {
                 .createdAt(java.time.LocalDateTime.now())
                 .updatedAt(java.time.LocalDateTime.now())
                 .build();
+        
+        // Generate installments with the calculated monthly amount
+        List<InstallmentResponseDTO> installments = new ArrayList<>();
+        LocalDate dueDate = request.getStartDate();
+        for (int i = 1; i <= request.getInstallmentCount(); i++) {
+            installments.add(InstallmentResponseDTO.builder()
+                    .id((long) i)
+                    .debtId(1L)
+                    .debtTitle(request.getTitle())
+                    .installmentNumber(i)
+                    .amount(installmentAmount)
+                    .dueDate(dueDate)
+                    .paid(false)
+                    .isOverdue(false)
+                    .build());
+            dueDate = dueDate.plusMonths(1);
+        }
+        response.setInstallments(installments);
+        
+        return response;
     }
     
     private List<DebtResponseDTO> createSampleDebtsList(boolean includeInstallments) {
@@ -402,6 +434,13 @@ public class AdminController {
         public String getMessage() { return message; }
     }
 }
+
+
+
+
+
+
+
 
 
 

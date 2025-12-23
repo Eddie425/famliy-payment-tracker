@@ -25,10 +25,13 @@ public class CreateDebtRequest {
     @Size(max = 200, message = "Title must not exceed 200 characters")
     private String title;
     
-    @Schema(description = "Total amount of the debt in smallest currency unit (e.g., cents)", example = "300000", required = true)
-    @NotNull(message = "Total amount is required")
+    @Schema(description = "Total amount of the debt in smallest currency unit (e.g., cents). Either totalAmount or monthlyPaymentAmount must be provided.", example = "300000")
     @Positive(message = "Total amount must be positive")
     private Long totalAmount;
+    
+    @Schema(description = "Monthly payment amount in smallest currency unit (e.g., cents). If provided, totalAmount will be calculated as monthlyPaymentAmount × installmentCount. Either totalAmount or monthlyPaymentAmount must be provided.", example = "25000")
+    @Positive(message = "Monthly payment amount must be positive")
+    private Long monthlyPaymentAmount;
     
     @Schema(description = "Number of installments (monthly payments)", example = "12", required = true, minimum = "1")
     @NotNull(message = "Installment count is required")
@@ -42,8 +45,13 @@ public class CreateDebtRequest {
     @Schema(description = "Annual interest rate (optional, as percentage)", example = "5.5")
     @DecimalMin(value = "0.0", message = "Interest rate must be non-negative")
     private BigDecimal interestRate; // Optional
+    
+    /**
+     * Custom validation: Either totalAmount or monthlyPaymentAmount must be provided
+     */
+    @AssertTrue(message = "Either totalAmount or monthlyPaymentAmount must be provided")
+    private boolean isValidAmount() {
+        return (totalAmount != null && totalAmount > 0) || 
+               (monthlyPaymentAmount != null && monthlyPaymentAmount > 0);
+    }
 }
-
-
-
-
