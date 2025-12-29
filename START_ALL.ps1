@@ -58,3 +58,7 @@ Write-Host ""
 Write-Host "Opening frontend in browser..." -ForegroundColor Green
 Start-Sleep -Seconds 35
 Start-Process "http://localhost:3000"
+
+
+
+

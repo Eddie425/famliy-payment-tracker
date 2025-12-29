@@ -1,12 +1,14 @@
 package com.eddie.famliy_payment_tracker.controller;
 
 import com.eddie.famliy_payment_tracker.dto.DashboardSummaryDTO;
+import com.eddie.famliy_payment_tracker.service.DashboardService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,7 +30,10 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/dashboard")
 @Tag(name = "Dashboard APIs", description = "APIs for viewing payment statistics, monthly breakdowns, and visualization data")
+@RequiredArgsConstructor
 public class DashboardController {
+    
+    private final DashboardService dashboardService;
 
     /**
      * Get comprehensive dashboard summary
@@ -53,12 +58,7 @@ public class DashboardController {
             @RequestParam(required = false) Integer year,
             @Parameter(description = "Filter by month (1-12)")
             @RequestParam(required = false) Integer month) {
-        
-        // TODO: Replace with actual service call once entities/repositories are implemented
-        // For now, returning a sample structure to show the design
-        
-        DashboardSummaryDTO response = createSampleDashboardSummary();
-        
+        DashboardSummaryDTO response = dashboardService.calculateSummary(year, month);
         return ResponseEntity.ok(response);
     }
     
@@ -82,10 +82,7 @@ public class DashboardController {
             @RequestParam Integer year,
             @Parameter(description = "Month (1-12)", required = true)
             @RequestParam Integer month) {
-        
-        // TODO: Implement actual service call
-        DashboardSummaryDTO.MonthlyBreakdownDTO monthly = createSampleMonthlyBreakdown(year, month);
-        
+        DashboardSummaryDTO.MonthlyBreakdownDTO monthly = dashboardService.calculateMonthlyBreakdown(year, month);
         return ResponseEntity.ok(monthly);
     }
     
@@ -244,6 +241,10 @@ public class DashboardController {
         return debts;
     }
 }
+
+
+
+
 
 
 

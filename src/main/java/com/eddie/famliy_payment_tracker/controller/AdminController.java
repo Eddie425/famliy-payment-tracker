@@ -1,6 +1,8 @@
 package com.eddie.famliy_payment_tracker.controller;
 
 import com.eddie.famliy_payment_tracker.dto.*;
+import com.eddie.famliy_payment_tracker.service.DebtService;
+import com.eddie.famliy_payment_tracker.service.InstallmentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -9,6 +11,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,7 +27,11 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/admin")
 @Tag(name = "Admin APIs", description = "APIs for managing debts and adjusting monthly payment installments")
+@RequiredArgsConstructor
 public class AdminController {
+    
+    private final DebtService debtService;
+    private final InstallmentService installmentService;
 
     /**
      * Create a new debt and automatically generate installments
@@ -47,17 +54,7 @@ public class AdminController {
     public ResponseEntity<DebtResponseDTO> createDebt(
             @Parameter(description = "Debt creation request with title, total amount (or monthly payment amount), installment count, and start date")
             @Valid @RequestBody CreateDebtRequest request) {
-        // TODO: Replace with actual service call
-        // DebtService.createDebt(request) -> returns DebtResponseDTO
-        
-        // Calculate totalAmount from monthlyPaymentAmount if provided
-        Long calculatedTotalAmount = request.getTotalAmount();
-        Long monthlyAmount = request.getMonthlyPaymentAmount();
-        if (calculatedTotalAmount == null && monthlyAmount != null) {
-            calculatedTotalAmount = monthlyAmount * request.getInstallmentCount();
-        }
-        
-        DebtResponseDTO response = createSampleDebtResponse(request, calculatedTotalAmount, monthlyAmount);
+        DebtResponseDTO response = debtService.createDebt(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -81,11 +78,7 @@ public class AdminController {
             @RequestParam(required = false) String status,
             @Parameter(description = "Whether to include installment details in the response")
             @RequestParam(defaultValue = "false") Boolean includeInstallments) {
-        
-        // TODO: Replace with actual service call
-        // DebtService.getAllDebts(status, includeInstallments)
-        
-        List<DebtResponseDTO> debts = createSampleDebtsList(includeInstallments);
+        List<DebtResponseDTO> debts = debtService.getAllDebts(status, includeInstallments);
         return ResponseEntity.ok(debts);
     }
 
@@ -113,11 +106,7 @@ public class AdminController {
             @PathVariable Long id,
             @Parameter(description = "Whether to include installment details")
             @RequestParam(defaultValue = "true") Boolean includeInstallments) {
-        
-        // TODO: Replace with actual service call
-        // DebtService.getDebtById(id, includeInstallments)
-        
-        DebtResponseDTO debt = createSampleDebtResponse(id, includeInstallments);
+        DebtResponseDTO debt = debtService.getDebtById(id, includeInstallments);
         return ResponseEntity.ok(debt);
     }
 
@@ -138,14 +127,7 @@ public class AdminController {
     public ResponseEntity<List<InstallmentResponseDTO>> getDebtInstallments(
             @Parameter(description = "ID of the debt")
             @PathVariable Long id) {
-        
-        // TODO: Replace with actual service call
-        // InstallmentService.getInstallmentsByDebtId(id)
-        
-        // Use current date for more realistic sample data
-        LocalDate now = LocalDate.now();
-        LocalDate startDate = now.minusMonths(3).withDayOfMonth(1);
-        List<InstallmentResponseDTO> installments = createSampleInstallments(id, startDate);
+        List<InstallmentResponseDTO> installments = installmentService.getInstallmentsByDebtId(id);
         return ResponseEntity.ok(installments);
     }
 
@@ -177,11 +159,7 @@ public class AdminController {
             @PathVariable Long id,
             @Parameter(description = "Update request with optional amount and/or dueDate")
             @Valid @RequestBody UpdateInstallmentRequest request) {
-        
-        // TODO: Replace with actual service call
-        // InstallmentService.updateInstallment(id, request) -> returns InstallmentResponseDTO
-        
-        InstallmentResponseDTO updated = createSampleUpdatedInstallment(id, request);
+        InstallmentResponseDTO updated = installmentService.updateInstallment(id, request);
         return ResponseEntity.ok(updated);
     }
 
@@ -205,17 +183,13 @@ public class AdminController {
     public ResponseEntity<List<InstallmentResponseDTO>> bulkUpdateInstallments(
             @Parameter(description = "List of installment updates")
             @Valid @RequestBody List<BulkUpdateInstallmentRequest> requests) {
-        
-        // TODO: Replace with actual service call
-        // InstallmentService.bulkUpdateInstallments(requests)
-        
         List<InstallmentResponseDTO> updated = new ArrayList<>();
         for (BulkUpdateInstallmentRequest req : requests) {
-            updated.add(createSampleUpdatedInstallment(req.getInstallmentId(), 
-                UpdateInstallmentRequest.builder()
+            UpdateInstallmentRequest updateRequest = UpdateInstallmentRequest.builder()
                     .amount(req.getAmount())
                     .dueDate(req.getDueDate())
-                    .build()));
+                    .build();
+            updated.add(installmentService.updateInstallment(req.getInstallmentId(), updateRequest));
         }
         return ResponseEntity.ok(updated);
     }
@@ -240,10 +214,7 @@ public class AdminController {
     public ResponseEntity<ApiResponseMessage> deleteDebt(
             @Parameter(description = "ID of the debt to delete")
             @PathVariable Long id) {
-        
-        // TODO: Replace with actual service call
-        // DebtService.deleteDebt(id) or DebtService.markInactive(id)
-        
+        debtService.deleteDebt(id);
         return ResponseEntity.ok(ApiResponseMessage.builder()
                 .success(true)
                 .message("Debt deleted successfully")
@@ -446,6 +417,10 @@ public class AdminController {
         public String getMessage() { return message; }
     }
 }
+
+
+
+
 
 
 

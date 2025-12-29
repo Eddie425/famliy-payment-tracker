@@ -55,3 +55,7 @@ public class CreateDebtRequest {
                (monthlyPaymentAmount != null && monthlyPaymentAmount > 0);
     }
 }
+
+
+
+

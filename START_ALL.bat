@@ -36,3 +36,7 @@ echo Please wait 30-60 seconds for all services to fully start.
 echo Then open http://localhost:3000 in your browser.
 echo.
 pause
+
+
+
+
