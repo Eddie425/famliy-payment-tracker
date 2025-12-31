@@ -219,9 +219,11 @@ public class DashboardService {
         boolean isOverdue = !installment.getPaid() && installment.getDueDate().isBefore(today);
         
         String debtTitle = installment.getDebt() != null ? installment.getDebt().getTitle() : "Unknown";
+        Long debtId = installment.getDebt() != null ? installment.getDebt().getId() : null;
         
         return DashboardSummaryDTO.InstallmentDetailDTO.builder()
                 .installmentId(installment.getId())
+                .debtId(debtId)
                 .debtTitle(debtTitle)
                 .amount(installment.getAmount())
                 .dueDate(installment.getDueDate().toString())
@@ -231,6 +233,8 @@ public class DashboardService {
                 .build();
     }
 }
+
+
 
 
 

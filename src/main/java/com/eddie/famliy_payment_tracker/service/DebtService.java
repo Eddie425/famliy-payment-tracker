@@ -127,22 +127,18 @@ public class DebtService {
      * Convert Debt entity to DTO
      */
     private DebtResponseDTO toDTO(Debt debt, Boolean includeInstallments) {
-        DebtResponseDTO.DebtSummaryDTO summary = null;
+        // Always calculate summary - it doesn't require loading all installment details
+        long paidAmount = installmentService.calculatePaidAmount(debt.getId());
+        long remainingAmount = debt.getTotalAmount() - paidAmount;
+        long paidCount = installmentService.countPaidInstallments(debt.getId());
+        int remainingCount = debt.getInstallmentCount() - (int) paidCount;
         
-        // Calculate summary if needed
-        if (includeInstallments) {
-            long paidAmount = installmentService.calculatePaidAmount(debt.getId());
-            long remainingAmount = debt.getTotalAmount() - paidAmount;
-            int paidCount = (int) installmentService.countPaidInstallments(debt.getId());
-            int remainingCount = debt.getInstallmentCount() - paidCount;
-            
-            summary = DebtResponseDTO.DebtSummaryDTO.builder()
-                    .paidAmount(paidAmount)
-                    .remainingAmount(remainingAmount)
-                    .paidInstallmentsCount(paidCount)
-                    .remainingInstallmentsCount(remainingCount)
-                    .build();
-        }
+        DebtResponseDTO.DebtSummaryDTO summary = DebtResponseDTO.DebtSummaryDTO.builder()
+                .paidAmount(paidAmount)
+                .remainingAmount(remainingAmount)
+                .paidInstallmentsCount((int) paidCount)
+                .remainingInstallmentsCount(remainingCount)
+                .build();
         
         DebtResponseDTO.DebtResponseDTOBuilder builder = DebtResponseDTO.builder()
                 .id(debt.getId())
@@ -163,6 +159,8 @@ public class DebtService {
         return builder.build();
     }
 }
+
+
 
 
 

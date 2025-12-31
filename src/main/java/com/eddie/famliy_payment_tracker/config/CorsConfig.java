@@ -18,7 +18,13 @@ public class CorsConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOriginPatterns("http://localhost:*", "http://127.0.0.1:*")
+                .allowedOriginPatterns(
+                    "http://localhost:*", 
+                    "http://127.0.0.1:*",
+                    "https://*.vercel.app",
+                    "https://*.netlify.app",
+                    "https://*.railway.app"
+                )
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
                 .allowedHeaders("*")
                 .allowCredentials(true)
@@ -35,8 +41,15 @@ public class CorsConfig implements WebMvcConfigurer {
         
         // In Spring Boot 3.x, when using setAllowCredentials(true), 
         // we must use addAllowedOriginPattern() instead of addAllowedOrigin()
+        // Allow localhost for development
         config.addAllowedOriginPattern("http://localhost:*");
         config.addAllowedOriginPattern("http://127.0.0.1:*");
+        
+        // Allow common deployment platforms
+        config.addAllowedOriginPattern("https://*.vercel.app");
+        config.addAllowedOriginPattern("https://*.netlify.app");
+        config.addAllowedOriginPattern("https://*.railway.app");
+        config.addAllowedOriginPattern("https://*.onrender.com");
         
         // Allow all headers
         config.addAllowedHeader("*");
@@ -53,6 +66,8 @@ public class CorsConfig implements WebMvcConfigurer {
         return new CorsFilter(source);
     }
 }
+
+
 
 
 

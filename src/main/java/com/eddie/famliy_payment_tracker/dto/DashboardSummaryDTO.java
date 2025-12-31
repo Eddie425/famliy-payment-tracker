@@ -56,6 +56,7 @@ public class DashboardSummaryDTO {
     @AllArgsConstructor
     public static class InstallmentDetailDTO {
         private Long installmentId;
+        private Long debtId;               // ID of the debt this installment belongs to
         private String debtTitle;
         private Long amount;
         private String dueDate;            // ISO date format
@@ -107,6 +108,8 @@ public class DashboardSummaryDTO {
         private BigDecimal percentage;     // Progress percentage
     }
 }
+
+
 
 
 

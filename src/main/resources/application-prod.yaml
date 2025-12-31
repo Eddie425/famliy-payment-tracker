@@ -12,11 +12,13 @@ spring:
       ddl-auto: validate
     properties:
       hibernate:
-        format_sql: true
+        format_sql: false
   flyway:
     enabled: true
     baseline-on-migrate: true
 
 logging:
   level:
-    org.hibernate.SQL: info
+    root: INFO
+    com.eddie.famliy_payment_tracker: INFO
+    org.hibernate.SQL: WARN
